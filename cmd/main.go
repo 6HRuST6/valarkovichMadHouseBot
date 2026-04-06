@@ -11,6 +11,8 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
+const adminID int64 = 247753697
+
 func main() {
 
 	token := os.Getenv("tg_token")
@@ -45,7 +47,7 @@ func main() {
 		log.Fatalf("cannot init storage: %v", err)
 	}
 
-	handler := appbot.New(telegramBot, store)
+	handler := appbot.New(telegramBot, store, adminID)
 
 	log.Printf("authorized as @%s", telegramBot.Self.UserName)
 
