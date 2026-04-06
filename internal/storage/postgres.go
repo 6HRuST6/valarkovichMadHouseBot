@@ -124,3 +124,12 @@ func (s *Storage) GetUserByTelegramID(telegramID int64) (User, error) {
 
 	return u, err
 }
+
+func (s *Storage) DeleteUserByTelegramID(telegramID int64) error {
+	_, err := s.DB.Exec(`
+		DELETE FROM users
+		WHERE telegram_id = $1
+	`, telegramID)
+
+	return err
+}
