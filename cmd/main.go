@@ -1,9 +1,13 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"log"
+	"net"
+	"net/http"
 	"os"
+	"time"
 	appbot "valarkovichMadHouseBot/internal/bot"
 	"valarkovichMadHouseBot/internal/storage"
 
@@ -21,13 +25,33 @@ func main() {
 		log.Fatal("tg_bot empty")
 	}
 
-	databaseURL := os.Getenv("DB_URL")
+	databaseURL := os.Getenv("DB_URLexport")
 	if databaseURL == "" {
 		log.Fatal("DATABASE_URL is empty")
 	}
 
-	telegramBot, err := tgbotapi.NewBotAPI(token)
+	dialer := &net.Dialer{
+		Timeout:   10 * time.Second,
+		KeepAlive: 30 * time.Second,
+	}
 
+	transport := &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			return dialer.DialContext(ctx, "tcp4", addr)
+		},
+		ForceAttemptHTTP2:     false,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ResponseHeaderTimeout: 0,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
+
+	client := &http.Client{
+		Timeout:   70 * time.Second,
+		Transport: transport,
+	}
+
+	telegramBot, err := tgbotapi.NewBotAPIWithClient(token, tgbotapi.APIEndpoint, client)
 	if err != nil {
 		log.Fatal(err)
 	}
